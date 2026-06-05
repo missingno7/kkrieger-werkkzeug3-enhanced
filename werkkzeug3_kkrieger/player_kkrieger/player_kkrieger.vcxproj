@@ -58,14 +58,14 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..;../materials;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;KKRIEGER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;KKRIEGER;KKR_ENHANCED_BUILD=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <ForcedIncludeFiles>$(SolutionDir)\player_kkrieger\kkrieger_config.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>$(ProjectDir)kkrieger_config.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <OutputFile>$(OutDir)player_kkrieger.exe</OutputFile>
@@ -75,19 +75,20 @@
       <SubSystem>Windows</SubSystem>
       <EntryPointSymbol />
       <TargetMachine>MachineX86</TargetMachine>
+      <LargeAddressAware>true</LargeAddressAware>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalOptions>/QIfist %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>%(AdditionalOptions)</AdditionalOptions>
       <Optimization>MinSpace</Optimization>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>..;../materials;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;KKRIEGER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;KKRIEGER;KKR_ENHANCED_BUILD=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <ExceptionHandling />
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -96,12 +97,12 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <ForcedIncludeFiles>$(SolutionDir)/player_kkrieger/kkrieger_config.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>$(ProjectDir)kkrieger_config.hpp;%(ForcedIncludeFiles)</ForcedIncludeFiles>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;dxguid.lib;dinput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)player_kkrieger.exe</OutputFile>
-      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -109,6 +110,7 @@
       <EntryPointSymbol />
       <BaseAddress>0x800000</BaseAddress>
       <TargetMachine>MachineX86</TargetMachine>
+      <LargeAddressAware>true</LargeAddressAware>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -123,7 +125,7 @@
     <ClCompile Include="..\genscene.cpp" />
     <ClCompile Include="..\kdoc.cpp" />
     <ClCompile Include="..\kkriegergame.cpp" />
-    <ClCompile Include="..\mainplayer.cpp" />
+    <ClCompile Include="kkrieger_main.cpp" />
     <ClCompile Include="..\materials\material11.cpp" />
     <ClCompile Include="..\materials\material20.cpp" />
     <ClCompile Include="..\materials\materialdirect.cpp" />
@@ -162,11 +164,11 @@
   <ItemGroup>
     <CustomBuild Include="..\_viruz2a.asm">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename)%(Extension)</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"yasm.exe" -f win32 -o"$(OutDir)%(Filename).obj" "%(FullPath)"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"..\..\yasm-1.3.0\yasm.exe" -f win32 -o"$(OutDir)%(Filename).obj" "%(FullPath)"
 </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename)%(Extension)</Message>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">yasm -f win32 -o"$(OutDir)%(Filename).obj" "%(FullPath)"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"..\..\yasm-1.3.0\yasm.exe" -f win32 -o"$(OutDir)%(Filename).obj" "%(FullPath)"
 </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)%(Filename).obj;%(Outputs)</Outputs>
     </CustomBuild>

@@ -4,6 +4,7 @@
 #include "_start.hpp"
 #include "_startdx.hpp"
 #include "material11.hpp"
+#include "kkrieger_enhanced.hpp"
 #if sLINK_UTIL
 #include "_util.hpp"                  // for sPerfMon->Flip()
 #endif
@@ -455,12 +456,22 @@ BOOL CALLBACK sDialogProc(HWND win,UINT msg,WPARAM wparam,LPARAM lparam)
     SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"800x600");
     SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"1024x768");
     SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"1280x1024");
+    SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"1280x720");
+    SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"1600x900");
+    SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"1920x1080");
+    SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"2560x1440");
+    SendDlgItemMessage(win,IDC_RESOLUTION,CB_ADDSTRING,0,(LPARAM)"3840x2160");
+#if KKR_ENHANCED_BUILD
+    SendDlgItemMessage(win,IDC_RESOLUTION,CB_SETCURSEL,KKR_DEFAULT_RESOLUTION_INDEX,0);
+#else
     SendDlgItemMessage(win,IDC_RESOLUTION,CB_SETCURSEL,2,0);
+#endif
 
     SendDlgItemMessage(win,IDC_ASPECT,CB_ADDSTRING,0,(LPARAM)"4:3 (default)");
     SendDlgItemMessage(win,IDC_ASPECT,CB_ADDSTRING,0,(LPARAM)"5:4");
     SendDlgItemMessage(win,IDC_ASPECT,CB_ADDSTRING,0,(LPARAM)"16:9");
     SendDlgItemMessage(win,IDC_ASPECT,CB_ADDSTRING,0,(LPARAM)"16:10");
+    SendDlgItemMessage(win,IDC_ASPECT,CB_ADDSTRING,0,(LPARAM)"21:9");
     SendDlgItemMessage(win,IDC_ASPECT,CB_ADDSTRING,0,(LPARAM)"2:1");
     SendDlgItemMessage(win,IDC_ASPECT,CB_SETCURSEL,0,0);
 
@@ -481,10 +492,11 @@ BOOL CALLBACK sDialogProc(HWND win,UINT msg,WPARAM wparam,LPARAM lparam)
     case IDOK:
       {
         sInt res = SendDlgItemMessage(win,IDC_RESOLUTION,CB_GETCURSEL,0,0);
-        res = sRange(res,2,0);
 
-        static sInt xResTab[] = { 640,800,1024,1280 };
-        static sInt yResTab[] = { 480,600, 768,1024 };
+        static sInt xResTab[] = { 640,800,1024,1280,1280,1600,1920,2560,3840 };
+        static sInt yResTab[] = { 480,600, 768,1024, 720, 900,1080,1440,2160 };
+        const sInt resCount = sizeof(xResTab)/sizeof(xResTab[0]);
+        res = sRange(res,resCount-1,0);
 
         sU32 flags = sSF_DIRECT3D;
         if(IsDlgButtonChecked(win,IDC_FULLSCREEN) == BST_CHECKED)

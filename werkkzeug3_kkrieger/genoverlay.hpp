@@ -67,6 +67,9 @@ class sMaterialDirect;
 void GenOverlayInit();
 void GenOverlayExit();
 
+extern sInt GenOverlayFullRTMaxXExp;
+extern sInt GenOverlayFullRTMaxYExp;
+
 struct GenOverlayRT
 {
   GenBitmap *Bitmap;
@@ -156,6 +159,7 @@ public:
 };
 
 GenIPP * __stdcall Init_IPP_Viewport(GenScene *scene,GenSpline *,sInt size,sInt flags,sU32 color,sF323 rot,sF323 pos,sF32 farclip,sF32 nearclip,sF32 centerx,sF32 centery,sF32 zoomx,sF32 zoomy,sU32 fogc,sF32 fogend,sF32 fogst,sF32 eyed,sF32 focal,sF32 fx0,sF32 fy0,sF32 fx1,sF32 fy1,sInt ocount);
+GenIPP * __stdcall Init_IPP_ViewportLegacy(GenScene *scene,sInt size,sInt flags,sU32 color,sF323 rot,sF323 pos,sF32 farclip,sF32 nearclip,sF32 centerx,sF32 centery,sF32 zoomx,sF32 zoomy,sU32 fogc,sF32 fogend,sF32 fogst,sInt ocount);
 GenIPP * __stdcall Init_IPP_Blur(GenIPP *in,sInt size,sF32 radius,sF32 amplify,sInt flags,sInt stages,sInt ocount);
 GenIPP * __stdcall Init_IPP_Copy(GenIPP *in,sInt size,sU32 color,sF32 zoom,sInt ocount);
 GenIPP * __stdcall Init_IPP_Crashzoom(GenIPP *in,sInt size,sInt steps,sF32 zoom,sF32 amplify,sF322 center,sInt ocount);
@@ -170,6 +174,7 @@ GenIPP * __stdcall Init_IPP_HSCB(GenIPP *in,sInt size,sF32 hue,sF32 sat,sF32 con
 GenIPP * __stdcall Init_IPP_JPEG(GenIPP *in,sInt size,sInt dir,sF32 strength,sInt ocount);
 
 void __stdcall Exec_IPP_Viewport(KOp *op,KEnvironment *kenv,sInt size,sInt flags,sU32 color,sF323 rot,sF323 pos,sF32 farclip,sF32 nearclip,sF32 centerx,sF32 centery,sF32 zoomx,sF32 zoomy,sU32 fogc,sF32 fogend,sF32 fogst,sF32 eyed,sF32 focal,sF32 fx0,sF32 fy0,sF32 fx1,sF32 fy1,sInt ocount);
+void __stdcall Exec_IPP_ViewportLegacy(KOp *op,KEnvironment *kenv,sInt size,sInt flags,sU32 color,sF323 rot,sF323 pos,sF32 farclip,sF32 nearclip,sF32 centerx,sF32 centery,sF32 zoomx,sF32 zoomy,sU32 fogc,sF32 fogend,sF32 fogst,sInt ocount);
 void __stdcall Exec_IPP_Blur(KOp *op,KEnvironment *kenv,sInt size,sF32 radius,sF32 amplify,sInt flags,sInt stages,sInt ocount);
 void __stdcall Exec_IPP_Copy(KOp *op,KEnvironment *kenv,sInt size,sU32 color,sF32 zoom,sInt ocount);
 void __stdcall Exec_IPP_Crashzoom(KOp *op,KEnvironment *kenv,sInt size,sInt steps,sF32 zoom,sF32 amplify,sF322 center,sInt ocount);

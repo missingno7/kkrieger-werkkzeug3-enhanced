@@ -13,6 +13,7 @@
 #include "rtmanager.hpp"
 #include "shadercompile.hpp"
 #include "_startdx.hpp"
+#include "kkrieger_enhanced.hpp"
 
 #if sPROFILE
 #include "_util.hpp"
@@ -118,6 +119,13 @@ void GenOverlayExit()
 }
 
 GenOverlayManagerClass *GenOverlayManager;
+sInt GenOverlayFullRTMaxXExp = KKR_OVERLAY_FULLRT_MAX_X_EXP;
+sInt GenOverlayFullRTMaxYExp = KKR_OVERLAY_FULLRT_MAX_Y_EXP;
+
+static sInt GenOverlayRTSizeFromExp(sInt exp)
+{
+  return 1 << sRange<sInt>(exp,13,0);
+}
 
 /****************************************************************************/
 
@@ -434,10 +442,12 @@ GenOverlayManagerClass::GenOverlayManagerClass()
   {
     for(j=0;j<GENOVER_RTPERSIZE;j++)
     {
+      sInt xexp = (i == RTSIZE_FULL) ? GenOverlayFullRTMaxXExp : sizes[i][0];
+      sInt yexp = (i == RTSIZE_FULL) ? GenOverlayFullRTMaxYExp : sizes[i][1];
 #if !sPLAYER
-      rtd->Bitmap = Bitmap_RenderTarget(sizes[i][0]-si.LowQuality,sizes[i][1]-si.LowQuality,si.ShaderLevel>=sPS_20 ? sizes[i][2] : sTF_A8R8G8B8);
+      rtd->Bitmap = Bitmap_RenderTarget(sRange<sInt>(xexp-si.LowQuality,13,0),sRange<sInt>(yexp-si.LowQuality,13,0),si.ShaderLevel>=sPS_20 ? sizes[i][2] : sTF_A8R8G8B8);
 #else
-      rtd->Bitmap = Bitmap_RenderTarget(sizes[i][0],sizes[i][1],CurrentShader>=sPS_20 ? sizes[i][2] : sTF_A8R8G8B8);
+      rtd->Bitmap = Bitmap_RenderTarget(sRange<sInt>(xexp,13,0),sRange<sInt>(yexp,13,0),CurrentShader>=sPS_20 ? sizes[i][2] : sTF_A8R8G8B8);
 #endif
       rtd->Owner = 0;
       rtd->Size = i;
@@ -610,8 +620,8 @@ void GenOverlayManagerClass::PrepareViewport(GenOverlayRT *rt,sViewport &vp)
     if(rt->Size == GENOVER_RTSIZES - 1) // full size rendertarget?
     {
       // yes, use 1:1 pixel mapping window
-      vp.Window.x1 = sMin(Master.Window.XSize(),1024);
-      vp.Window.y1 = sMin(Master.Window.YSize(),512);
+      vp.Window.x1 = sMin(Master.Window.XSize(),GenOverlayRTSizeFromExp(GenOverlayFullRTMaxXExp));
+      vp.Window.y1 = sMin(Master.Window.YSize(),GenOverlayRTSizeFromExp(GenOverlayFullRTMaxYExp));
     }
   }
   else
@@ -623,8 +633,8 @@ void GenOverlayManagerClass::SetMasterViewport(sViewport &vp)
   Master = vp;
 
   // recompute scale for full-size rendertargets
-  sF32 scaleu = sMin(1.0f * vp.Window.XSize() / 1024,1.0f);
-  sF32 scalev = sMin(1.0f * vp.Window.YSize() / 512,1.0f);
+  sF32 scaleu = sMin(1.0f * vp.Window.XSize() / GenOverlayRTSizeFromExp(GenOverlayFullRTMaxXExp),1.0f);
+  sF32 scalev = sMin(1.0f * vp.Window.YSize() / GenOverlayRTSizeFromExp(GenOverlayFullRTMaxYExp),1.0f);
 
   for(sInt i=0;i<GENOVER_RTCOUNT;i++)
   {
@@ -842,6 +852,12 @@ GenIPP * __stdcall Init_IPP_Viewport(GenScene *scene,GenSpline *spline,sInt size
   return new GenIPP;
 }
 
+GenIPP * __stdcall Init_IPP_ViewportLegacy(GenScene *scene,sInt size,sInt flags,sU32 color,sF323 rot,sF323 pos,sF32 farclip,sF32 nearclip,sF32 centerx,sF32 centery,sF32 zoomx,sF32 zoomy,sU32 fogc,sF32 fogend,sF32 fogst,sInt ocount)
+{
+  if(scene) scene->Release();
+  return new GenIPP;
+}
+
 GenIPP * __stdcall Init_IPP_Blur(GenIPP *in,sInt size,sF32 radius,sF32 amplify,sInt flags,sInt stages,sInt ocount)
 {
   if(in) in->Release();
@@ -929,6 +945,11 @@ GenIPP * __stdcall Init_IPP_JPEG(GenIPP *in,sInt size,sInt dir,sF32 strength,sIn
 /****************************************************************************/
 
 extern sBool IntroStereo3D;
+
+void __stdcall Exec_IPP_ViewportLegacy(KOp *parent,KEnvironment *kenv,sInt size,sInt flags,sU32 color,sF323 rot,sF323 pos,sF32 farclip,sF32 nearclip,sF32 centerx,sF32 centery,sF32 zoomx,sF32 zoomy,sU32 fogc,sF32 fogend,sF32 fogst,sInt ocount)
+{
+  Exec_IPP_Viewport(parent,kenv,size,flags,color,rot,pos,farclip,nearclip,centerx,centery,zoomx,zoomy,fogc,fogend,fogst,0,0,0,0,1,1,ocount);
+}
 
 void __stdcall Exec_IPP_Viewport(KOp *parent,KEnvironment *kenv,sInt size,sInt flags,sU32 color,sF323 rot,sF323 pos,sF32 farclip,sF32 nearclip,sF32 centerx,sF32 centery,sF32 zoomx,sF32 zoomy,sU32 fogc,sF32 fogend,sF32 fogst,sF32 eyed,sF32 focal,sF32 fx0,sF32 fy0,sF32 fx1,sF32 fy1,sInt ocount)
 {

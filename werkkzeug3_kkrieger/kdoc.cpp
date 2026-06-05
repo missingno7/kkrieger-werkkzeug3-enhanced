@@ -10,6 +10,13 @@
 #include "genscene.hpp"
 #include "geneffect.hpp"
 #include "kkriegergame.hpp"
+#include "kkrieger_enhanced.hpp"
+#include <stdio.h>
+#include <stdarg.h>
+
+#if sPLAYER
+static void KDocLogF(const sChar *format,...);
+#endif
 
 #if !sPLAYER
 KOp *KOpCurrent = 0;
@@ -301,6 +308,7 @@ static sInt CallCode(sInt code,sInt *para,sInt count)
 
 KObject *KOp::Call(KEnvironment *kenv)
 {
+  KDocLogF("kdoc: call op=%d cmd=%d conv=%08x",OpId,Command,Convention);
   sU32 data[KK_MAXINPUT+128];
   sInt p,pNoPara;
   sInt i,max;
@@ -1576,6 +1584,24 @@ static sBool DistributeAnimR(KOp *start)
 
 #if sPLAYER
 
+static void KDocLogF(const sChar *format,...)
+{
+#if KKR_PLAYER_TRACE_LOG
+  FILE *file = fopen("player_kkrieger.log","ab");
+  if(file)
+  {
+    sChar buffer[256];
+    va_list arg;
+    va_start(arg,format);
+    vsprintf(buffer,format,arg);
+    va_end(arg);
+    fputs(buffer,file);
+    fputs("\r\n",file);
+    fclose(file);
+  }
+#endif
+}
+
 void KDoc::Init(const sU8 *&dataPtr)
 {
   const sU8 *data;
@@ -1589,28 +1615,82 @@ void KDoc::Init(const sU8 *&dataPtr)
   KOp *op,*dest;
   sInt rootindex[MAX_OP_ROOT];
   sInt flags;
+  sBool legacyExport;
 
   data = dataPtr;
+  legacyExport = sFALSE;
 
   flags = *(sU32 *)data; data+=4;
+  if(flags & ~7)
+  {
+    SongSize = flags;
+    flags = 2;
+    legacyExport = sTRUE;
+    KDocLogF("kdoc: legacy song size=%d",SongSize);
+  }
+  else
+  {
+    KDocLogF("kdoc: flags=%08x",flags);
+    if(flags&1) data+=32;
+    SongSize = *(sU32 *)data; data+=4;
+    KDocLogF("kdoc: song size=%d",SongSize);
+  }
   BuzzTiming = (flags&4);
-  if(flags&1) data+=32;
-  SongSize = *(sU32 *)data; data+=4;
   SongData = (sU8 *)data; data+=sAlign(SongSize,4);
   if(flags&2)
   {
     SampleSize = *(sU32 *)data; data+=4;
+    KDocLogF("kdoc: sample size=%d",SampleSize);
     SampleData = (sU8 *)data; data+=sAlign(SampleSize,4);
   }
   SongBPM = *(sU32 *)data; data+=4;
   SongLength = *(sU32 *)data; data+=4;
   nOps = sReadShort(data);
   nSplines = sReadShort(data);
-  for(i=0;i<MAX_OP_ROOT;i++)
-    rootindex[i] = sReadShort(data);  
+  KDocLogF("kdoc: bpm=%08x length=%d ops=%d splines=%d",SongBPM,SongLength,nOps,nSplines);
+  max = legacyExport ? 4 : MAX_OP_ROOT;
+  for(i=0;i<max;i++)
+    rootindex[i] = sReadShort(data);
+  for(;i<MAX_OP_ROOT;i++)
+    rootindex[i] = nOps;  
+  KDocLogF("kdoc: roots %d %d %d %d",rootindex[0],rootindex[1],rootindex[2],rootindex[3]);
 
   Ops.Init(nOps); Ops.Count = nOps;
   Splines.Init(nSplines); Splines.Count = nSplines;
+
+  if(legacyExport)
+  {
+    const sU8 *classStart;
+    const sU8 *scan;
+    const sU8 *p;
+    KHandler *handler;
+    sInt id;
+    sInt skip;
+
+    classStart = data;
+    for(skip=0;skip<64;skip++)
+    {
+      scan = data + skip;
+      conv = *((sU32 *) scan);
+      id = legacyExport ? scan[4] : *((sU16 *) (scan+4));
+      handler = KHandlers;
+      while(handler->Id && handler->Id != id)
+        handler++;
+
+      p = scan + (legacyExport ? 5 : 6);
+      while(p<scan+70 && *p>=32 && *p<127)
+        p++;
+
+      if(conv && OPC_GETDATA(conv)<64 && handler->Id && p<scan+70 && *p==0)
+      {
+        classStart = scan;
+        break;
+      }
+    }
+    if(classStart != data)
+      KDocLogF("kdoc: skipped legacy class remap bytes=%d",classStart-data);
+    data = classStart;
+  }
 
   cls = KClasses;
   nClasses = 0;
@@ -1619,7 +1699,14 @@ void KDoc::Init(const sU8 *&dataPtr)
   {
     data += 4;
     cls->Convention = conv;
-    i = *((sU16 *)data); data+=2;
+    if(legacyExport)
+      i = *data++;
+    else
+    {
+      i = *((sU16 *)data);
+      data+=2;
+    }
+    KDocLogF("kdoc: class %d id=%02x conv=%08x",nClasses,i,conv);
     cls->Packing = (sChar *) data;
     while(*data++);
 
@@ -1638,6 +1725,11 @@ void KDoc::Init(const sU8 *&dataPtr)
  
     cls->InitHandler = handler->InitHandler;
     cls->ExecHandler = handler->ExecHandler;
+    if(legacyExport && i==0xf0 && conv==0x08000112)
+    {
+      cls->InitHandler = Init_IPP_ViewportLegacy;
+      cls->ExecHandler = Exec_IPP_ViewportLegacy;
+    }
     cls++;
     nClasses++;
   }

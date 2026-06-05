@@ -10,8 +10,16 @@
 
 // Compile Options
 
+#ifndef KKR_ENHANCED_BUILD
+#define KKR_ENHANCED_BUILD 0
+#endif
+
 #define sNEWCONFIG        1
+#if KKR_ENHANCED_BUILD
+#define sINTRO            0                         // enhanced player/dev build
+#else
 #define sINTRO            1                         // compile for small size
+#endif
 #define sPLAYER           1                         // this is a player, not the tool.
 #define sPROFILE          0                         // include profiling code
 #define sUNICODE          0                         // define sCHAR as 16bit

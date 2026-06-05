@@ -68,6 +68,8 @@ void WerkkzeugSoundHandler(sS16 *steriobuffer,sInt samples,void *user);
 #define CMD_EDIT_CLEARRESPAWN 0x110d
 #define CMD_EDIT_FINDSWITCH   0x110e
 #define CMD_EDIT_FINDBUGS     0x110f
+#define CMD_EDIT_TEXXH        0x1110
+#define CMD_EDIT_TEXDEBUG     0x1111
 
 #define CMD_MUSIC_START       0x1201
 #define CMD_MUSIC_TOGGLE      0x1202
@@ -652,8 +654,10 @@ sBool WerkkzeugApp::OnCommand(sU32 cmd)
     mf->AddMenu("Log",CMD_EDIT_LOG,sKEYQ_CTRL|'l');
     mf->AddSpacer();
     mf->AddCheck("Low Textures",CMD_EDIT_TEXL,0,GenBitmapTextureSizeOffset==-1);
-    mf->AddCheck("Normal Textures",CMD_EDIT_TEXM,0,GenBitmapTextureSizeOffset==0);
-    mf->AddCheck("High Textures",CMD_EDIT_TEXH,0,GenBitmapTextureSizeOffset==1);
+    mf->AddCheck("Original Textures",CMD_EDIT_TEXM,0,GenBitmapTextureSizeOffset==0);
+    mf->AddCheck("HD Textures 2x",CMD_EDIT_TEXH,0,GenBitmapTextureSizeOffset==1);
+    mf->AddCheck("HD Textures 4x",CMD_EDIT_TEXXH,0,GenBitmapTextureSizeOffset==2);
+    mf->AddCheck("HD Textures 8x Debug",CMD_EDIT_TEXDEBUG,0,GenBitmapTextureSizeOffset==3);
     mf->AddSpacer();
     mf->AddMenu("Find Class",CMD_EDIT_FINDCLASS,0);
     mf->AddMenu("Find Bugs",CMD_EDIT_FINDBUGS,0);
@@ -735,6 +739,16 @@ sBool WerkkzeugApp::OnCommand(sU32 cmd)
 
   case CMD_EDIT_TEXH:
     GenBitmapTextureSizeOffset = 1;
+    Doc->Flush(KC_BITMAP);
+    return sTRUE;
+
+  case CMD_EDIT_TEXXH:
+    GenBitmapTextureSizeOffset = 2;
+    Doc->Flush(KC_BITMAP);
+    return sTRUE;
+
+  case CMD_EDIT_TEXDEBUG:
+    GenBitmapTextureSizeOffset = 3;
     Doc->Flush(KC_BITMAP);
     return sTRUE;
 
@@ -1197,7 +1211,7 @@ sBool WerkkzeugApp::LoadConfig()
     {
       AutoSaveMax = *data++;
       UserCount = *data++;
-      GenBitmapTextureSizeOffset = (sS32) (*data++);
+      GenBitmapTextureSizeOffset = sRange<sInt>((sS32) (*data++),3,-1);
       MusicVolume = *data++;
       data++; // skip current shader version
       //GenOverlayManager->CurrentShader = *data++;
