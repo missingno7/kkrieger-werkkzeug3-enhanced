@@ -279,11 +279,13 @@ static sInt CallCode(sInt code,sInt *para,sInt count)
 #else
   __asm
   {
+    push ebx
+    push esi
+    push edi
+    mov ebx,esp
     mov eax,code
     mov esi,para
     mov ecx,count
-    push ebp
-    mov ebp,esp
     sub esp,ecx
     sub esp,ecx
     sub esp,ecx
@@ -293,8 +295,10 @@ static sInt CallCode(sInt code,sInt *para,sInt count)
 
     call eax
 
-    mov esp,ebp
-    pop ebp
+    mov esp,ebx
+    pop edi
+    pop esi
+    pop ebx
     mov result,eax
   }
 #endif
