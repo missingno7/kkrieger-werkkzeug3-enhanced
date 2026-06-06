@@ -223,7 +223,7 @@ GenOverlayManagerClass::GenOverlayManagerClass()
   CurrentShader = sPS_11;
 #endif
 
-#if !sINTRO
+#if !sINTRO || KKRIEGER
   if(CurrentShader>=sPS_11)
   {
     Mtrl[GENOVER_DEFAULT] = new sMaterial11;
@@ -295,7 +295,7 @@ GenOverlayManagerClass::GenOverlayManagerClass()
   Mtrl[GENOVER_TEX1]->AlphaCombiner = sMCA_TEX0 | (sMCA_COL0 << 4);
 
   Mtrl[GENOVER_SHARPEN] = new sMaterial11;
-#if !sINTRO
+#if !sINTRO || KKRIEGER
   Mtrl[GENOVER_SHARPEN]->ShaderLevel = sPS_11;
   Mtrl[GENOVER_SHARPEN]->BaseFlags = sMBF_NONORMAL|sMBF_DOUBLESIDED|sMBF_ZOFF;
   Mtrl[GENOVER_SHARPEN]->Combiner[sMCS_TEX0] = sMCOA_SET/*|sMCOB_SET*/;

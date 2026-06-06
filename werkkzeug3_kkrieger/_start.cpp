@@ -51,7 +51,7 @@ const sChar *sWindowTitle="fr-044: patient zero";
 #pragma comment(lib,"opengl32.lib")
 #pragma comment(lib,"dinput8.lib")
 #pragma comment(lib, "legacy_stdio_definitions.lib")
-#if !sINTRO || _DEBUG
+#if !sINTRO || _DEBUG || KKRIEGER
 #pragma comment(lib,"dxguid.lib")
 #else
 #pragma comment(linker,"/nodefaultlib")
@@ -1717,7 +1717,7 @@ static LRESULT WINAPI MainWndProc(HWND win,UINT msg,WPARAM wparam,LPARAM lparam)
 
 #pragma lekktor(off)
 
-#if !sINTRO || !sRELEASE
+#if !sINTRO || !sRELEASE || KKRIEGER
 int APIENTRY WinMain(HINSTANCE inst,HINSTANCE prev,LPSTR cmdline,int show)
 {
   WInst = inst;
@@ -5171,6 +5171,9 @@ void sSystem_::Sample3DListener(const sVector &pos,const sVector &vel,const sVec
 {
   DS3DLISTENER params;
 
+  if(!Listener)
+    return;
+
   WINSET(params);
   params.vPosition.x = pos.x;
   params.vPosition.y = pos.y;
@@ -5198,6 +5201,9 @@ void sSystem_::Sample3DCommit()
   sSampleBuffer *buf;
 
   sZONE(Sound3D);
+
+  if(!Listener)
+    return;
 
   // disable hanging 3d sounds
   for(i=0;i<sMAXSAMPLEHANDLE;i++)

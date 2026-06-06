@@ -10,11 +10,14 @@
 #include "genoverlay.hpp"
 #include "rtmanager.hpp"
 #include "kkrieger_enhanced.hpp"
+#include <windows.h>
 #include <stdio.h>
 
 /****************************************************************************/
 
 static CV2MPlayer *Sound;
+static CRITICAL_SECTION SoundLock;
+static sBool SoundLockInitialized;
 static sMusicPlayer *Player = 0;
 static sInt SoundTimer;
 KDoc *Document;
@@ -218,12 +221,13 @@ void IntroSoundHandler(sS16 *stream,sInt left,void *user)
   sInt count;
   sInt i;
 
+  EnterCriticalSection(&SoundLock);
   SoundTimer += left;
   if(Sound)
   {
     while(left>0)
     {
-      count = sMin<sInt>(4096,left);
+      count = sMin<sInt>(128,left);
       Sound->Render(buffer,count);
       fp = buffer;
       for(i=0;i<count*2;i++)
@@ -246,6 +250,7 @@ void IntroSoundHandler(sS16 *stream,sInt left,void *user)
       *stream++ = 0;
     SoundTimer = 0;
   }
+  LeaveCriticalSection(&SoundLock);
 }
 
 static void MusicPlayerHandler(sS16 *buffer,sInt samples,void *user)
@@ -286,6 +291,11 @@ sBool sAppHandler(sInt code,sDInt value)
 
   case sAPPCODE_INIT:
     KKRLog("init: begin");
+    if(!SoundLockInitialized)
+    {
+      InitializeCriticalSection(&SoundLock);
+      SoundLockInitialized = sTRUE;
+    }
     data = PtrTable[0];
     if(((sInt)data)==0x54525450)
     {
@@ -346,11 +356,13 @@ sBool sAppHandler(sInt code,sDInt value)
         KKRLog("init: sound effects end");
       }
 
+      EnterCriticalSection(&SoundLock);
       if(Sound->Open(Document->SongData))
       {
         KKRLog("init: music open ok");
         Sound->Play(0);
         SoundTimer = 0;
+        LeaveCriticalSection(&SoundLock);
 #if KKR_ENABLE_AUDIO
         sSystem->SetSoundHandler(IntroSoundHandler,64);
 #else
@@ -362,6 +374,7 @@ sBool sAppHandler(sInt code,sDInt value)
         KKRLog("init: music open failed");
         delete Sound;
         Sound = 0;
+        LeaveCriticalSection(&SoundLock);
       }
       KKRLog("init: sound end");
     }
@@ -381,8 +394,10 @@ sBool sAppHandler(sInt code,sDInt value)
     if(Sound)
     {
       CV2MPlayer *old;
+      EnterCriticalSection(&SoundLock);
       old = Sound;
       Sound = 0;
+      LeaveCriticalSection(&SoundLock);
       delete old;
     }
     delete Player;
@@ -441,8 +456,10 @@ sBool sAppHandler(sInt code,sDInt value)
       Environment->ExitFrame();
       Game->ResetRoot(Environment,Document->RootOps[Document->CurrentRoot],0);
 
+      EnterCriticalSection(&SoundLock);
       Sound->Open(Document->SongData);
       Sound->Play(0);
+      LeaveCriticalSection(&SoundLock);
 #if KKR_ENABLE_AUDIO
       sSystem->SetSoundHandler(IntroSoundHandler,64);
 #else

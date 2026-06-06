@@ -5,7 +5,6 @@
 #pragma lekktor(off)
 
 #if sLINK_VIRUZ2
-
 extern "C"
 {
 	extern void __stdcall synthInit(const void *patchmap, int samplerate=44100);
@@ -752,13 +751,13 @@ namespace
 CV2MPlayer::CV2MPlayer() : m_tpc(1000)
 ////////////////////////
 {
-	m_base.valid=0;
+	m_base.valid=0;;
 }
 
 CV2MPlayer::CV2MPlayer(sU32 a_tickspersec) : m_tpc(a_tickspersec)
 ////////////////////////
 {
-	m_base.valid=0;
+	m_base.valid=0;;
 }
 
 
@@ -866,7 +865,7 @@ void CV2MPlayer::Reset()
 		UPDATENT(sc.pcnr,sc.pcnt, sc.pcptr, bc.pcnum);
 		sc.pbptr=bc.pbptr;
 		sc.pbnr=sc.lastpb0=sc.lastpb1=0;
-		UPDATENT(sc.pbnr,sc.pbnt, sc.pbptr, bc.pcnum);
+		UPDATENT(sc.pbnr,sc.pbnt, sc.pbptr, bc.pbnum);
 		for (sInt cn=0; cn<7; cn++)
 		{
 			V2MBase::Channel::CC &bcc=bc.ctl[cn];
@@ -972,8 +971,8 @@ void CV2MPlayer::Tick()
 		if (sc.pbnr<bc.pbnum && m_state.time==sc.pbnt)
 		{
 			PUTSTAT(0xe0|ch)
-			*mptr++=(sc.lastpb0+=sc.pbptr[3*bc.pcnum]);
-			*mptr++=(sc.lastpb1+=sc.pbptr[4*bc.pcnum]);
+			*mptr++=(sc.lastpb0+=sc.pbptr[3*bc.pbnum]);
+			*mptr++=(sc.lastpb1+=sc.pbptr[4*bc.pbnum]);
 			sc.pbnr++;
 			sc.pbptr++;
 			UPDATENT2(sc.pbnr,sc.pbnt,sc.pbptr,bc.pbnum);
@@ -995,6 +994,8 @@ void CV2MPlayer::Tick()
 
 	*mptr++=0xfd;
 
+
+
 	synthProcessMIDI(m_midibuf);
 	
 	if (m_state.nexttime==(sU32)-1) m_state.state=PlayerState::STOPPED;
@@ -1008,6 +1009,8 @@ sBool CV2MPlayer::Open(const void *a_v2mptr, sU32 a_samplerate)
 	if (m_base.valid) Close();
 	
 	m_samplerate=a_samplerate;
+
+
 
 	if (!InitBase(a_v2mptr)) return sFALSE;
 
@@ -1025,6 +1028,7 @@ void CV2MPlayer::Close()
 	if (m_state.state!=PlayerState::OFF) Stop();
 
 	m_base.valid=0;
+
 }
 
 
@@ -1139,6 +1143,7 @@ sBool CV2MPlayer::Render(sF32 *a_buffer, sU32 a_len)
 ////////////////////////////////////////////////////
 {
 	if (!a_buffer) return sFALSE;
+	sF32 *fadebuffer=a_buffer;
 
 	if (m_base.valid && m_state.state==PlayerState::PLAYING)
 	{
@@ -1200,8 +1205,8 @@ sBool CV2MPlayer::Render(sF32 *a_buffer, sU32 a_len)
 	{
 		for (sU32 i=0; i<a_len; i++)
 		{
-			a_buffer[2*i]*=m_fadeval;
-			a_buffer[2*i+1]*=m_fadeval;
+			fadebuffer[2*i]*=m_fadeval;
+			fadebuffer[2*i+1]*=m_fadeval;
 			m_fadeval-=m_fadedelta; if (m_fadeval<0) m_fadeval=0; 
 		}
 		if (!m_fadeval) Stop();
