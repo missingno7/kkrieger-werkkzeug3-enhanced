@@ -163,7 +163,7 @@ sInt DebugTexMem = 0;
 
 sBool sAppHandler(sInt code,sDInt value)
 {
-  static const sInt aspectRatios[][2] = { { 4,3 }, { 5,4 }, { 16,9 }, { 16,10 }, { 2,1 } };
+  static const sInt aspectRatios[][2] = { { 4,3 }, { 5,4 }, { 16,9 }, { 16,10 }, { 21,9 }, { 2,1 } };
 
   sInt beat;
   static const sU8 *data;

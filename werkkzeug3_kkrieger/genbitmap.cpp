@@ -3,6 +3,7 @@
 #include "genbitmap.hpp"
 #include "rtmanager.hpp"
 #include "_start.hpp"
+#include "kkrieger_enhanced.hpp"
 #include "mmintrin.h"
 #include "xmmintrin.h"
 #ifdef __MINGW32__
@@ -36,7 +37,8 @@
 
 /****************************************************************************/
 
-sInt GenBitmapTextureSizeOffset;         // 0 = normal, -1 = smaller, 1 = large
+sInt GenBitmapTextureSizeOffset = KKR_TEXTURE_SCALE_OFFSET; // 0 = original, 1 = 2x, 2 = 4x
+sInt GenBitmapTextureMaxExp = KKR_TEXTURE_MAX_EXP;          // max generated texture edge exponent
 
 #define BI_ADD        0
 #define BI_SUB        1
@@ -70,11 +72,16 @@ sInt GenBitmapTextureSizeOffset;         // 0 = normal, -1 = smaller, 1 = large
 static GenBitmap *NewBitmap(sInt xs,sInt ys)
 {
   GenBitmap *bm;
-  xs = sRange(xs+GenBitmapTextureSizeOffset,12,0);
-  ys = sRange(ys+GenBitmapTextureSizeOffset,12,0);
+  xs = GenBitmapScaledExp(xs);
+  ys = GenBitmapScaledExp(ys);
   bm = new GenBitmap;
   bm->Init(1<<xs,1<<ys);
   return bm;
+}
+
+sInt GenBitmapScaledExp(sInt exp)
+{
+  return sRange(exp+GenBitmapTextureSizeOffset,sRange<sInt>(GenBitmapTextureMaxExp,13,0),0);
 }
 
 static sBool CheckBitmap(GenBitmap *&bm,GenBitmap **inbm=0)
@@ -1941,8 +1948,8 @@ GenBitmap * __stdcall Bitmap_Rotate(GenBitmap *bm,sF32 angle,sF32 sx,sF32 sy,sF3
 // prepare
 	xs = bm->XSize;
 	ys = bm->YSize;
-  txs = newWidth ? 1 << (newWidth - 1 + GenBitmapTextureSizeOffset) : xs;
-  tys = newHeight ? 1 << (newHeight - 1 + GenBitmapTextureSizeOffset) : ys;
+  txs = newWidth ? 1 << GenBitmapScaledExp(newWidth - 1) : xs;
+  tys = newHeight ? 1 << GenBitmapScaledExp(newHeight - 1) : ys;
   mem = new sU64[txs * tys];
   d = (sU16 *)mem;
 

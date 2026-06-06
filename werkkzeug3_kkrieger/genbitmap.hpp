@@ -90,7 +90,9 @@ GenBitmap * __stdcall Bitmap_RenderAuto(KOp *op,class GenMinMesh *mesh,sInt xs,s
 void _stdcall Exec_Bitmap_Render(sInt xs,sInt ys);
 void _stdcall Exec_Bitmap_RenderAuto(sInt xs,sInt ys,sInt flags);
 
-extern sInt GenBitmapTextureSizeOffset;         // 0 = normal, -1 = smaller, 1 = large
+extern sInt GenBitmapTextureSizeOffset;         // 0 = original, 1 = 2x, 2 = 4x
+extern sInt GenBitmapTextureMaxExp;             // max generated texture edge exponent
+sInt GenBitmapScaledExp(sInt exp);
 
 /****************************************************************************/
 /****************************************************************************/

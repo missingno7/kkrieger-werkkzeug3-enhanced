@@ -4,6 +4,8 @@
 #include "genmesh.hpp"
 #include "engine.hpp"
 #include "genoverlay.hpp"
+#include "genbitmap.hpp"
+#include "kkrieger_enhanced.hpp"
 
 #if sPROFILE
 #include "_util.hpp"
@@ -243,8 +245,8 @@ void KKriegerGame::Init()
   sSetMem(Switches,0,KKRIEGER_SWITCHES);
   Switches[KGS_ONE] = 1;
   Switches[KGS_GLARE] = 2;
-  Switches[KGS_RESOLUTION] = 1;
-  Switches[KGS_TEXTURES] = 1;
+  Switches[KGS_RESOLUTION] = sRange<sInt>(KKR_DEFAULT_RESOLUTION_INDEX,8,0);
+  Switches[KGS_TEXTURES] = sRange<sInt>(KKR_TEXTURE_SCALE_OFFSET+1,4,0);
   Switches[KGS_SHADOWS] = 1;
   Switches[KGS_MOUSESPEED] = 5;
   Switches[KGS_BRIGHTNESS] = 5;
@@ -1723,9 +1725,15 @@ void KKriegerGame::OnOptionsChanged()
   Engine->SetUsageMask(usageMask);
 
   // update resolution if necessary
-  static const sInt xRes[] = { 640,800,1024,1280 };
-  static const sInt yRes[] = { 480,600, 768,1024 };
-  sInt res = Switches[KGS_RESOLUTION];
+  static const sInt xRes[] = { 640,800,1024,1280,1280,1600,1920,2560,3840 };
+  static const sInt yRes[] = { 480,600, 768,1024, 720, 900,1080,1440,2160 };
+  const sInt resCount = sizeof(xRes)/sizeof(xRes[0]);
+  sInt res = sRange<sInt>(Switches[KGS_RESOLUTION],resCount-1,0);
+  sInt tex = sRange<sInt>(Switches[KGS_TEXTURES],4,0);
+
+  Switches[KGS_RESOLUTION] = res;
+  Switches[KGS_TEXTURES] = tex;
+  GenBitmapTextureSizeOffset = tex - 1;
 
 #if sPLAYER
   if(xRes[res] != sSystem->ConfigX) // resolution changed?
